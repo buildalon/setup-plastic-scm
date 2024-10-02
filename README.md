@@ -11,6 +11,9 @@ A GitHub action to setup and install [Plastic SCM](https://www.plasticscm.com) (
 ```yaml
 steps:
   - uses: buildalon/setup-plastic-scm@v1
+    with:
+      unity-username: ${{ secrets.UNITY_USERNAME }}
+      unity-password: ${{ secrets.UNITY_PASSWORD }}
   - run: |
       cm version
 ```
@@ -19,4 +22,6 @@ steps:
 
 | name | description | required |
 | ---- | ----------- | -------- |
-| version | The specific version to install | defaults to the latest |
+| `version` | The specific version to install. | defaults to the latest |
+| `unity-username` | The email address associated with your Unity account. | true |
+| `unity-password` | The password associated with your Unity account. | true |

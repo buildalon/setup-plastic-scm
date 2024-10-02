@@ -5,8 +5,14 @@ branding:
   color: 'red'
 inputs:
   version:
-    description: 'The version of Plastic SCM to install'
+    description: 'The version of Plastic SCM to install.'
     required: false
+  unity-username:
+    description: 'The email address associated with your Unity account.'
+    required: true
+  unity-password:
+    description: 'The password associated with your Unity account.'
+    required: true
 runs:
   using: 'node20'
   main: 'dist/index.js'
