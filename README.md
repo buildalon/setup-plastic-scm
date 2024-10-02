@@ -8,7 +8,7 @@ A GitHub action to setup and install [Plastic SCM](https://www.plasticscm.com) (
 
 ```yaml
 steps:
-  - uses: RageAgainstThePixel/setup-plastic-scm@v1
+  - uses: buildalon/setup-plastic-scm@v1
   - run: |
       cm version
 ```
