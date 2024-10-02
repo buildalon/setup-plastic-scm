@@ -33191,6 +33191,7 @@ const exec = __nccwpck_require__(1514);
 const glob = __nccwpck_require__(8090);
 const tc = __nccwpck_require__(7784);
 const path = __nccwpck_require__(1017);
+const fs = __nccwpck_require__(7147);
 const main = async () => {
     try {
         run();
@@ -33206,12 +33207,12 @@ async function run() {
     }
     catch (error) {
         await install();
-    }
-    try {
-        await exec.exec('cm', ['version']);
-    }
-    catch (error) {
-        core.error(`Failed to call cm command!\n${error}`);
+        try {
+            await exec.exec('cm', ['version']);
+        }
+        catch (error) {
+            core.error(`Failed to call cm command!\n${error}`);
+        }
     }
 }
 function getTempDirectory() {
@@ -33253,6 +33254,7 @@ async function installWindows(version) {
     const installerPath = path.join(getTempDirectory(), archiveName);
     const downloadPath = await tc.downloadTool(url, installerPath);
     await exec.exec(`cmd`, ['/c', downloadPath, '--mode', 'unattended', '--unattendedmodeui', 'none', '--disable-components', 'ideintegrations,eclipse,mylyn,intellij12']);
+    await fs.promises.unlink(downloadPath);
     core.addPath('C:\\Program Files\\PlasticSCM5\\client');
 }
 async function installMac(version) {
@@ -33270,6 +33272,7 @@ async function installMac(version) {
         throw new Error('Failed to find the installer package');
     }
     await exec.exec('sudo', ['installer', '-pkg', pkgPaths[0], '-target', '/Applications']);
+    await fs.promises.unlink(downloadPath);
 }
 async function installLinux(version) {
     let installArg = 'plasticscm-cloud';
