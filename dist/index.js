@@ -33214,12 +33214,16 @@ async function run() {
             core.error(`Failed to call cm command!\n${error}`);
         }
     }
+    await authenticate();
 }
 function getTempDirectory() {
     return process.env['RUNNER_TEMP'] || '';
 }
 async function install() {
-    const version = core.getInput('version');
+    let version = core.getInput('version');
+    if (version === 'latest') {
+        version = undefined;
+    }
     switch (process.platform) {
         case 'win32': return await installWindows(version);
         case 'darwin': return await installMac(version);
@@ -33286,6 +33290,10 @@ async function installLinux(version) {
     await exec.exec('sudo', ['apt-key', 'add', 'Release.key']);
     await exec.exec('sudo', ['apt-get', 'update']);
     await exec.exec('sudo', ['apt-get', 'install', installArg]);
+}
+async function authenticate() {
+    const username = core.getInput('unity-username', { required: true });
+    const password = core.getInput('unity-password', { required: true });
 }
 
 })();
