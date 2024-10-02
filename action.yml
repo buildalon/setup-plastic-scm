@@ -1,4 +1,4 @@
-name: setup-plastic-scm
+name: Buildalon setup-plastic-scm
 description: 'A GitHub action to setup and install Plastic SCM (Unity VCS)'
 branding:
   icon: 'database'
