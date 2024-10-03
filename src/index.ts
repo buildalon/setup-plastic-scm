@@ -152,7 +152,7 @@ async function configure() {
 async function exchangeToken(accessToken: string): Promise<[string, string]> {
     core.info('Exchanging token...');
     let output: string = '';
-    const returnCode = await exec.exec('curl', ['-X', 'GET', '-H', `https://www.plasticscm.com/api/oauth/unityid/exchange/${accessToken}`], {
+    const returnCode = await exec.exec('curl', ['-X', 'GET', '-H', 'Content-Type: application/json', `https://www.plasticscm.com/api/oauth/unityid/exchange/${accessToken}`], {
         listeners: {
             stdout: (data: Buffer) => {
                 output += data.toString();
