@@ -33370,7 +33370,7 @@ async function getUnityAccessToken(projectId, credentials) {
     const credentialsBase64 = Buffer.from(credentials).toString('base64');
     core.setSecret(credentialsBase64);
     let output = '';
-    const payload = { "scopes": ["unity.projects.get", "unity.projects.create"] };
+    const payload = { "scopes": [] };
     await exec.exec('curl', ['-X', 'POST', '-H', `Authorization: Basic ${credentialsBase64}`, '-H', 'Content-Type: application/json', '-d', JSON.stringify(payload), `https://services.api.unity.com/auth/v1/token-exchange?projectId=${projectId}`], {
         listeners: {
             stdout: (data) => {
