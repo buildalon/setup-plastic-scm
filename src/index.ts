@@ -160,10 +160,21 @@ async function exchangeToken(accessToken: string): Promise<[string, string]> {
         },
         silent: true
     });
-    const json = JSON.parse(output);
+    let json: any;
+    try {
+        json = JSON.parse(output);
+    } catch (error) {
+        throw new Error(`Failed to exchange the token!\n${output}`);
+    }
     const token = json.accessToken;
+    if (!token) {
+        throw new Error(`Failed to exchange the token!\n${output}`);
+    }
     core.setSecret(token);
     const username = json.user;
+    if (!username) {
+        throw new Error(`Failed to exchange the token!\n${output}`);
+    }
     core.setSecret(username);
     return [username, token];
 }
