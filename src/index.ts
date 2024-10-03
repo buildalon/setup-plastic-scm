@@ -112,7 +112,22 @@ async function installLinux(version: string) {
 }
 
 async function authenticate() {
-    const username = core.getInput('unity-username', { required: true });
-    const password = core.getInput('unity-password', { required: true });
+    // const username = core.getInput('unity-username', { required: true });
+    // const password = core.getInput('unity-password', { required: true });
+    const clientConfPath = getPlasticClientConfPath();
+    core.info(`client.conf path: ${clientConfPath}`);
+    const clientConf = await fs.promises.readFile(clientConfPath, 'utf8');
+    core.info(clientConf);
+}
 
+function getPlasticClientConfPath(): string {
+    switch (process.platform) {
+        // c:\Users\<user>\AppData\Local\plastic4\client.conf
+        case 'win32': return path.join(process.env['APPDATA'] || '', 'plastic4', 'client.conf');
+        // /Users/<user>/.plastic4/client.conf
+        case 'darwin': return path.join(process.env['HOME'] || '', '.plastic4', 'client.conf');
+        // /home/<user>/.plastic4/client.conf
+        case 'linux': return path.join(process.env['HOME'] || '', '.plastic4', 'client.conf');
+        default: throw new Error(`Unsupported platform: ${process.platform}`);
+    }
 }

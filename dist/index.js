@@ -33292,8 +33292,18 @@ async function installLinux(version) {
     await exec.exec('sudo', ['apt-get', 'install', installArg]);
 }
 async function authenticate() {
-    const username = core.getInput('unity-username', { required: true });
-    const password = core.getInput('unity-password', { required: true });
+    const clientConfPath = getPlasticClientConfPath();
+    core.info(`client.conf path: ${clientConfPath}`);
+    const clientConf = await fs.promises.readFile(clientConfPath, 'utf8');
+    core.info(clientConf);
+}
+function getPlasticClientConfPath() {
+    switch (process.platform) {
+        case 'win32': return path.join(process.env['APPDATA'] || '', 'plastic4', 'client.conf');
+        case 'darwin': return path.join(process.env['HOME'] || '', '.plastic4', 'client.conf');
+        case 'linux': return path.join(process.env['HOME'] || '', '.plastic4', 'client.conf');
+        default: throw new Error(`Unsupported platform: ${process.platform}`);
+    }
 }
 
 })();
