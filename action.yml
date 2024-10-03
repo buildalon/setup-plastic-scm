@@ -13,6 +13,9 @@ inputs:
   unity-password:
     description: 'The password associated with your Unity account.'
     required: true
+  unity-organization:
+    description: 'The organization associated with your Unity account.'
+    required: true
 runs:
   using: 'node20'
   main: 'dist/index.js'

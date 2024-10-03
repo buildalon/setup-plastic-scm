@@ -26,8 +26,8 @@ async function run(): Promise<void> {
             core.error(`Failed to call cm command!\n${error}`);
         }
     }
+    await configure();
     await exec.exec('cm', ['checkconnection']);
-    await authenticate();
 }
 
 function getTempDirectory(): string {
@@ -112,7 +112,7 @@ async function installLinux(version: string) {
     await exec.exec('sudo', ['apt-get', 'install', installArg]);
 }
 
-async function authenticate() {
+async function configure() {
     // const username = core.getInput('unity-username', { required: true });
     // const password = core.getInput('unity-password', { required: true });
     const clientConfPath = getPlasticClientConfPath();

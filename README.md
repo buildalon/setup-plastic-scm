@@ -14,6 +14,7 @@ steps:
     with:
       unity-username: ${{ secrets.UNITY_USERNAME }}
       unity-password: ${{ secrets.UNITY_PASSWORD }}
+      unity-organization: ${{ secrets.UNITY_ORGANIZATION }}
   - run: |
       cm version
 ```
@@ -25,3 +26,4 @@ steps:
 | `version` | The specific version to install. | defaults to the latest |
 | `unity-username` | The email address associated with your Unity account. | true |
 | `unity-password` | The password associated with your Unity account. | true |
+| `unity-organization` | The organization associated with your Unity account. | true |
