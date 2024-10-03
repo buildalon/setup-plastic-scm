@@ -26,6 +26,7 @@ async function run(): Promise<void> {
             core.error(`Failed to call cm command!\n${error}`);
         }
     }
+    await exec.exec('cm', ['checkconnection']);
     await authenticate();
 }
 
