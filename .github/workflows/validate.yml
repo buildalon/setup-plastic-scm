@@ -22,7 +22,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./ # buildalon/setup-plastic-scm@v1
         with:
-          unity-username: ${{ secrets.UNITY_USERNAME }}
           uvcs-organization: ${{ secrets.UVCS_ORGANIZATION }}
           unity-cloud-project-id: ${{ secrets.UNITY_CLOUD_PROJECT_ID }}
           unity-service-account-credentials: ${{ secrets.UNITY_SERVICE_ACCOUNT_CREDENTIALS }}

@@ -33218,7 +33218,12 @@ async function run() {
         await testConnection();
     }
     catch (error) {
-        await configure();
+        try {
+            await configure();
+        }
+        catch (error) {
+            core.error(`Failed to configure Plastic SCM!\n${error}`);
+        }
     }
 }
 function getTempDirectory() {
@@ -33243,7 +33248,6 @@ async function getDownloadUrl(version) {
     }
 }
 async function getToolLatestVersion() {
-    core.info('Getting latest version...');
     let output = '';
     await exec.exec('curl', ['-s', 'https://www.plasticscm.com/api/lastversion/after/9.0.0.0/for/cloud/windows'], {
         listeners: {
@@ -33258,7 +33262,6 @@ async function getToolLatestVersion() {
     if (!version) {
         throw new Error('Failed to get the latest version');
     }
-    core.info(`Latest version: ${version}`);
     return version;
 }
 async function installWindows(version) {
@@ -33266,7 +33269,7 @@ async function installWindows(version) {
         version = await getToolLatestVersion();
     }
     const [url, archiveName] = await getDownloadUrl(version);
-    core.info(`Downloading ${archiveName} from ${url}...`);
+    core.debug(`Downloading ${archiveName} from ${url}...`);
     const installerPath = path.join(getTempDirectory(), archiveName);
     const downloadPath = await tc.downloadTool(url, installerPath);
     await exec.exec(`cmd`, ['/c', downloadPath, '--mode', 'unattended', '--unattendedmodeui', 'none', '--disable-components', 'ideintegrations,eclipse,mylyn,intellij12']);
@@ -33278,7 +33281,7 @@ async function installMac(version) {
         version = await getToolLatestVersion();
     }
     const [url, archiveName] = await getDownloadUrl(version);
-    core.info(`Downloading ${archiveName} from ${url}...`);
+    core.debug(`Downloading ${archiveName} from ${url}...`);
     const installerPath = path.join(getTempDirectory(), archiveName);
     const downloadPath = await tc.downloadTool(url, installerPath);
     const expandedPath = await tc.extractZip(downloadPath);
@@ -33287,7 +33290,7 @@ async function installMac(version) {
     if (!pkgPaths || pkgPaths.length === 0) {
         throw new Error('Failed to find the installer package');
     }
-    await exec.exec('sudo', ['installer', '-pkg', pkgPaths[0], '-target', '/Applications']);
+    await exec.exec('sudo', ['installer', '-pkg', pkgPaths[0], '-target', '/Applications', '-quiet']);
     await fs.promises.unlink(downloadPath);
 }
 async function installLinux(version) {
@@ -33318,6 +33321,7 @@ async function testConnection() {
     }
 }
 async function configure() {
+    core.info('Configuring Plastic SCM...');
     const projectId = core.getInput('unity-cloud-project-id', { required: true });
     const credentials = core.getInput('unity-service-account-credentials', { required: true });
     const accessToken = await getUnityAccessToken(projectId, credentials);
