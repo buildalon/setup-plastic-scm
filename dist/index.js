@@ -33331,14 +33331,18 @@ async function configure() {
 async function exchangeToken(accessToken) {
     core.info('Exchanging token...');
     let output = '';
-    await exec.exec('curl', ['-X', 'GET', '-H', `https://www.plasticscm.com/api/oauth/unityid/exchange/${accessToken}`], {
+    const returnCode = await exec.exec('curl', ['-X', 'GET', '-H', `https://www.plasticscm.com/api/oauth/unityid/exchange/${accessToken}`], {
         listeners: {
             stdout: (data) => {
                 output += data.toString();
             }
         },
-        silent: true
+        silent: true,
+        ignoreReturnCode: true
     });
+    if (returnCode !== 0) {
+        throw new Error(`Failed to exchange the token!\n${output}`);
+    }
     let json;
     try {
         json = JSON.parse(output);
