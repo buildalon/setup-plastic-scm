@@ -7,14 +7,14 @@ inputs:
   version:
     description: 'The version of Plastic SCM to install.'
     required: false
-  unity-username:
-    description: 'The email address associated with your Unity account.'
+  uvcs-organization:
+    description: 'The Unity Version Control Services Organization.'
     required: true
-  unity-password:
-    description: 'The password associated with your Unity account.'
+  unity-cloud-project-id:
+    description: 'The Unity Cloud Project ID.'
     required: true
-  unity-organization:
-    description: 'The organization associated with your Unity account.'
+  unity-service-account-credentials:
+    description: 'The service account key id and secret key.'
     required: true
 runs:
   using: 'node20'
