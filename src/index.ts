@@ -29,6 +29,7 @@ async function run(): Promise<void> {
     try {
         await testConnection();
     } catch (error) {
+        core.warning(`Failed to connection test!\n${error}`);
         try {
             await configure();
         }
@@ -107,7 +108,7 @@ async function installMac(version: string) {
     if (!pkgPaths || pkgPaths.length === 0) {
         throw new Error('Failed to find the installer package');
     }
-    await exec.exec('sudo', ['installer', '-pkg', pkgPaths[0], '-target', '/Applications', '-quiet']);
+    await exec.exec('sudo', ['installer', '-pkg', pkgPaths[0], '-target', '/Applications']);
     await fs.promises.unlink(downloadPath);
 }
 
@@ -155,6 +156,7 @@ async function configure() {
 }
 
 async function exchangeToken(accessToken: string): Promise<[string, string]> {
+    core.info('Exchanging token...');
     let output: string = '';
     await exec.exec('curl', ['-X', 'GET', '-H', `https://www.plasticscm.com/api/oauth/unityid/exchange/${accessToken}`], {
         listeners: {
@@ -173,6 +175,7 @@ async function exchangeToken(accessToken: string): Promise<[string, string]> {
 }
 
 async function getOrganization(username: string, token: string): Promise<string> {
+    core.info('Getting the organization...');
     const credentialsBase64 = Buffer.from(`${username}:${token}`).toString('base64');
     core.setSecret(credentialsBase64);
     let output: string = '';
@@ -192,6 +195,7 @@ async function getOrganization(username: string, token: string): Promise<string>
 }
 
 async function getUnityAccessToken(projectId: string, credentials: string): Promise<string> {
+    core.info('Getting Unity access token...');
     const credentialsBase64 = Buffer.from(credentials).toString('base64');
     core.setSecret(credentialsBase64);
     let output: string = '';
