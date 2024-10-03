@@ -162,7 +162,7 @@ async function exchangeToken(accessToken: string): Promise<[string, string]> {
         ignoreReturnCode: true
     });
     if (returnCode !== 0) {
-        throw new Error(`Failed to exchange the token!\n${output}`);
+        throw new Error(`Failed to exchange the token!\n[${returnCode}] ${output}`);
     }
     let json: any;
     try {

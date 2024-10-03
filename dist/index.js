@@ -33341,7 +33341,7 @@ async function exchangeToken(accessToken) {
         ignoreReturnCode: true
     });
     if (returnCode !== 0) {
-        throw new Error(`Failed to exchange the token!\n${output}`);
+        throw new Error(`Failed to exchange the token!\n[${returnCode}] ${output}`);
     }
     let json;
     try {
