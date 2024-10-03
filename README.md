@@ -11,6 +11,10 @@ A GitHub action to setup and install [Plastic SCM](https://www.plasticscm.com) (
 ```yaml
 steps:
   - uses: buildalon/setup-plastic-scm@v1
+    with:
+      uvcs-organization: ${{ secrets.UVCS_ORGANIZATION }}
+      unity-cloud-project-id: ${{ secrets.UNITY_CLOUD_PROJECT_ID }}
+      unity-service-account-credentials: ${{ secrets.UNITY_SERVICE_ACCOUNT_CREDENTIALS }}
   - run: |
       cm version
 ```
@@ -19,4 +23,7 @@ steps:
 
 | name | description | required |
 | ---- | ----------- | -------- |
-| version | The specific version to install | defaults to the latest |
+| `version` | The specific version to install. | defaults to the latest |
+| `uvcs-organization` | The Unity Version Control Services Organization. | defaults to first org |
+| `unity-cloud-project-id` | The uuid of your unity cloud project | true |
+| `unity-service-account-credentials` | The service account key id and secret key formatted: `<KEY_ID>:<SECRET_KEY>`  | true |

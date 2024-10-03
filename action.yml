@@ -5,8 +5,17 @@ branding:
   color: 'red'
 inputs:
   version:
-    description: 'The version of Plastic SCM to install'
+    description: 'The version of Plastic SCM to install.'
     required: false
+  uvcs-organization:
+    description: 'The Unity Version Control Services Organization.'
+    required: true
+  unity-cloud-project-id:
+    description: 'The Unity Cloud Project ID.'
+    required: true
+  unity-service-account-credentials:
+    description: 'The service account key id and secret key.'
+    required: true
 runs:
   using: 'node20'
   main: 'dist/index.js'

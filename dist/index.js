@@ -33214,12 +33214,21 @@ async function run() {
             core.error(`Failed to call cm command!\n${error}`);
         }
     }
+    try {
+        await testConnection();
+    }
+    catch (error) {
+        await configure();
+    }
 }
 function getTempDirectory() {
     return process.env['RUNNER_TEMP'] || '';
 }
 async function install() {
-    const version = core.getInput('version');
+    let version = core.getInput('version');
+    if (version === 'latest') {
+        version = undefined;
+    }
     switch (process.platform) {
         case 'win32': return await installWindows(version);
         case 'darwin': return await installMac(version);
@@ -33234,15 +33243,20 @@ async function getDownloadUrl(version) {
     }
 }
 async function getToolLatestVersion() {
-    core.info('Getting latest version...');
-    const response = await fetch('https://www.plasticscm.com/download');
-    const body = await response.text();
-    const versionMatch = body.match(/<strong>Version:\s*<\/strong>(\d+\.\d+\.\d+\.\d+)/);
-    if (!versionMatch) {
-        throw new Error('Failed to parse version');
+    let output = '';
+    await exec.exec('curl', ['-s', 'https://www.plasticscm.com/api/lastversion/after/9.0.0.0/for/cloud/windows'], {
+        listeners: {
+            stdout: (data) => {
+                output += data.toString();
+            }
+        },
+        silent: !core.isDebug()
+    });
+    const json = JSON.parse(output);
+    const version = json.version;
+    if (!version) {
+        throw new Error('Failed to get the latest version');
     }
-    const version = versionMatch[1];
-    core.info(`Latest version: ${version}`);
     return version;
 }
 async function installWindows(version) {
@@ -33250,7 +33264,7 @@ async function installWindows(version) {
         version = await getToolLatestVersion();
     }
     const [url, archiveName] = await getDownloadUrl(version);
-    core.info(`Downloading ${archiveName} from ${url}...`);
+    core.debug(`Downloading ${archiveName} from ${url}...`);
     const installerPath = path.join(getTempDirectory(), archiveName);
     const downloadPath = await tc.downloadTool(url, installerPath);
     await exec.exec(`cmd`, ['/c', downloadPath, '--mode', 'unattended', '--unattendedmodeui', 'none', '--disable-components', 'ideintegrations,eclipse,mylyn,intellij12']);
@@ -33262,7 +33276,7 @@ async function installMac(version) {
         version = await getToolLatestVersion();
     }
     const [url, archiveName] = await getDownloadUrl(version);
-    core.info(`Downloading ${archiveName} from ${url}...`);
+    core.debug(`Downloading ${archiveName} from ${url}...`);
     const installerPath = path.join(getTempDirectory(), archiveName);
     const downloadPath = await tc.downloadTool(url, installerPath);
     const expandedPath = await tc.extractZip(downloadPath);
@@ -33286,6 +33300,118 @@ async function installLinux(version) {
     await exec.exec('sudo', ['apt-key', 'add', 'Release.key']);
     await exec.exec('sudo', ['apt-get', 'update']);
     await exec.exec('sudo', ['apt-get', 'install', installArg]);
+}
+async function testConnection() {
+    const expect = `Test connection executed successfully`;
+    let output = '';
+    await exec.exec('cm', ['checkconnection'], {
+        listeners: {
+            stdout: (data) => {
+                output += data.toString();
+            }
+        }
+    });
+    if (!output.includes(expect)) {
+        throw new Error(`Test connection failed!\n${output}`);
+    }
+}
+async function configure() {
+    core.info('Configuring Plastic SCM...');
+    const projectId = core.getInput('unity-cloud-project-id', { required: true });
+    const credentials = core.getInput('unity-service-account-credentials', { required: true });
+    const accessToken = await getUnityAccessToken(projectId, credentials);
+    const [username, token] = await exchangeToken(accessToken);
+    let organization = core.getInput('uvcs-organization', { required: false });
+    if (!organization) {
+        organization = await getOrganization(username, token);
+    }
+    await exec.exec('cm', [`configure`, `--workingmode=SSOWorkingMode`, `--server=${organization}@cloud`, `--user=${username}`, `--token=${token}`]);
+    await exec.exec('cm', ['checkconnection']);
+}
+async function exchangeToken(accessToken) {
+    core.info('Exchanging token...');
+    let output = '';
+    const returnCode = await exec.exec('curl', ['-X', 'GET', '-H', 'Content-Type: application/json', `https://www.plasticscm.com/api/oauth/unityid/exchange/${accessToken}`], {
+        listeners: {
+            stdout: (data) => {
+                output += data.toString();
+            }
+        },
+        silent: true,
+        ignoreReturnCode: true
+    });
+    if (returnCode !== 0) {
+        throw new Error(`Failed to exchange the token!\n[${returnCode}] ${output}`);
+    }
+    let json;
+    try {
+        json = JSON.parse(output);
+    }
+    catch (error) {
+        throw new Error(`Failed to exchange the token!\n${output}`);
+    }
+    const token = json.accessToken;
+    if (!token) {
+        throw new Error(`Failed to exchange the token!\n${output}`);
+    }
+    core.setSecret(token);
+    const username = json.user;
+    if (!username) {
+        throw new Error(`Failed to exchange the token!\n${output}`);
+    }
+    core.setSecret(username);
+    return [username, token];
+}
+async function getOrganization(username, token) {
+    core.info('Getting the organization...');
+    const credentialsBase64 = Buffer.from(`${username}:${token}`).toString('base64');
+    core.setSecret(credentialsBase64);
+    let output = '';
+    await exec.exec('curl', ['-X', 'GET', '-H', `Authorization: Basic ${credentialsBase64}`, 'https://www.plasticscm.com/api/cloud/organizations'], {
+        listeners: {
+            stdout: (data) => {
+                output += data.toString();
+            }
+        }
+    });
+    const json = JSON.parse(output);
+    const organizations = json.organizations;
+    if (!organizations || organizations.length === 0) {
+        throw new Error(`Failed to get the organizations\n${output}`);
+    }
+    return organizations[0];
+}
+async function getUnityAccessToken(projectId, credentials) {
+    core.info('Getting Unity access token...');
+    const credentialsBase64 = Buffer.from(credentials).toString('base64');
+    core.setSecret(credentialsBase64);
+    let output = '';
+    const payload = { "scopes": ["unity.projects.get"] };
+    await exec.exec('curl', ['-X', 'POST', '-H', `Authorization: Basic ${credentialsBase64}`, '-H', 'Content-Type: application/json', '-d', JSON.stringify(payload), `https://services.api.unity.com/auth/v1/token-exchange?projectId=${projectId}`], {
+        listeners: {
+            stdout: (data) => {
+                output += data.toString();
+            }
+        },
+        silent: true
+    });
+    let json;
+    try {
+        json = JSON.parse(output);
+    }
+    catch (error) {
+        throw new Error(`Failed to get the access token!\n${output}`);
+    }
+    const error = json.error;
+    if (error) {
+        throw new Error(`Failed to get the access token!\n${error}`);
+    }
+    const accessToken = json.accessToken;
+    if (!accessToken) {
+        throw new Error(`Failed to get the access token!\n${output}`);
+    }
+    core.setSecret(accessToken);
+    return accessToken;
 }
 
 })();
