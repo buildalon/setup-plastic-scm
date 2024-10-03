@@ -33218,13 +33218,7 @@ async function run() {
         await testConnection();
     }
     catch (error) {
-        core.warning(`Failed to connection test!\n${error}`);
-        try {
-            await configure();
-        }
-        catch (error) {
-            core.error(`Failed to configure Plastic SCM!\n${error}`);
-        }
+        await configure();
     }
 }
 function getTempDirectory() {
@@ -33376,7 +33370,8 @@ async function getUnityAccessToken(projectId, credentials) {
     const credentialsBase64 = Buffer.from(credentials).toString('base64');
     core.setSecret(credentialsBase64);
     let output = '';
-    await exec.exec('curl', ['-X', 'POST', '-H', `Authorization: Basic ${credentialsBase64}`, `https://services.api.unity.com/auth/v1/token-exchange?projectId=${projectId}`], {
+    const payload = { "scopes": ["unity.projects.get", "unity.projects.create"] };
+    await exec.exec('curl', ['-X', 'POST', '-H', `Authorization: Basic ${credentialsBase64}`, '-H', 'Content-Type: application/json', '-d', JSON.stringify(payload), `https://services.api.unity.com/auth/v1/token-exchange?projectId=${projectId}`], {
         listeners: {
             stdout: (data) => {
                 output += data.toString();
@@ -33384,7 +33379,17 @@ async function getUnityAccessToken(projectId, credentials) {
         },
         silent: true
     });
-    const json = JSON.parse(output);
+    let json;
+    try {
+        json = JSON.parse(output);
+    }
+    catch (error) {
+        throw new Error(`Failed to get the access token!\n${output}`);
+    }
+    const error = json.error;
+    if (error) {
+        throw new Error(`Failed to get the access token!\n${error}`);
+    }
     const accessToken = json.accessToken;
     core.setSecret(accessToken);
     if (!accessToken) {
