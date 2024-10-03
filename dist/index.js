@@ -33391,10 +33391,10 @@ async function getUnityAccessToken(projectId, credentials) {
         throw new Error(`Failed to get the access token!\n${error}`);
     }
     const accessToken = json.accessToken;
-    core.setSecret(accessToken);
     if (!accessToken) {
         throw new Error(`Failed to get the access token!\n${output}`);
     }
+    core.setSecret(accessToken);
     return accessToken;
 }
 
