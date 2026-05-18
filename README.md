@@ -20,3 +20,4 @@ steps:
 | name | description | required |
 | ---- | ----------- | -------- |
 | version | The specific version to install | defaults to the latest |
+
