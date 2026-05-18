@@ -1,4 +1,4 @@
-name: Buildalon setup-plastic-scm
+name: 'Buildalon setup-plastic-scm'
 description: 'A GitHub action to setup and install Plastic SCM (Unity VCS)'
 branding:
   icon: 'database'
@@ -8,5 +8,5 @@ inputs:
     description: 'The version of Plastic SCM to install'
     required: false
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/index.js'
