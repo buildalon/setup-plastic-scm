@@ -1,9 +1,11 @@
 name: validate
 on:
   push:
-    branches: ['main']
+    branches:
+      - 'main'
   pull_request:
-    branches: ['*']
+    branches:
+      - '*'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 concurrency:
@@ -18,8 +20,16 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+        version: [latest, 11.0.16.10484]
     steps:
       - uses: actions/checkout@v6
-      - uses: ./ # buildalon/setup-plastic-scm@v1
+      - uses: ./ # buildalon/setup-plastic-scm@v2
+        id: setup-plastic-scm
+        with:
+          version: ${{ matrix.version }}
       - run: |
           cm version
+          echo "path: ${{ steps.setup-plastic-scm.outputs.path }}"
+          echo "version: ${{ steps.setup-plastic-scm.outputs.version }}"
+          "$PLASTIC_SCM_PATH" version
+        shell: bash
